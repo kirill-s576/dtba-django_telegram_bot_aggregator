@@ -17,21 +17,31 @@ from dtba.lib.obj.message import TextResponseMessage
 
 
 class TestHandler(BaseHandler):
-
+    
     @handler_action(
         conditions_list=[
             IsNewUser,
-            IsText, ContainsText(text="start"),
+            IsText, 
+            ContainsText('start')
+        ]
+    )
+    def show_hi(self, request):
+        message = TextResponseMessage(request, "Hello!")
+        message.send()
+        self.show_menu(request)
+    
+    @handler_action(
+        conditions_list=[
+            IsNewUser,
+            IsText, 
+            ContainsText('menu')
         ]
     )
     def show_menu(self, request):
-        print(request.message.chat.id)
-        print(request.message.text)
-        print(request.user_model)
-        print(request.bot_model)
-        message = TextResponseMessage(request, "Hello World!")
-        result = message.send()
-        print(result)
+        message = TextResponseMessage(request, "Menu!")
+        message.send()
+
+        
 
 class TestBot(BasicBotInterface):
 
