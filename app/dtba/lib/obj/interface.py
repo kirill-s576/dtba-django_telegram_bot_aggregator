@@ -1,15 +1,26 @@
 import telebot
-from .request import TextTelegramRequest
 import inspect
+
+from .request import TextTelegramRequest
+from .request import FileTelegramRequest
+from .request import CallBackTelegramRequest
+
+from ..middlewares import AddModelsMiddleware
+from ..middlewares import ParseUrlMiddleware
 
 
 class BasicBotInterface:
     """
 
     """
-    middlwares = [
 
-    ]
+    custom_middlewares = []
+
+    __middlewares = [
+        AddModelsMiddleware,
+        ParseUrlMiddleware,
+
+    ] + custom_middlewares
 
     handlers = [
 
@@ -29,15 +40,20 @@ class BasicBotInterface:
         @bot.message_handler(func=lambda message: True)
         def text_message_handler(message):
             request = TextTelegramRequest(bot, message)
+            request = self.__process_middlewares(request)
             self.__process_handlers(request)
 
         @bot.message_handler(func=lambda message: True, content_types=['document', 'audio', 'photo'])
         def file_message_handler(message):
-            print(message.text)
+            request = FileTelegramRequest(bot, message)
+            request = self.__process_middlewares(request)
+            self.__process_handlers(request)
 
         @bot.callback_query_handler(func=lambda call: True)
         def call_message_handler(call):
-            print(call.message.text)
+            request = CallBackTelegramRequest(bot, call)
+            request = self.__process_middlewares(request)
+            self.__process_handlers(request)
 
         return bot
 
@@ -48,7 +64,21 @@ class BasicBotInterface:
             for method in methods[1:]:
                 func = getattr(inited_handler, method[0])
                 if 'is_action' in func.__dict__:
+                    condition_flag = True
                     for condition in func.__dict__["conditions"]:
-                        init_condition = condition(request)
-                        if init_condition.is_valid():
-                            func(request)
+                        try:
+                            init_condition = condition(request)
+                            if not init_condition.is_valid():
+                                condition_flag = False
+                        except TypeError:
+                            condition.request = request
+                            if not condition.is_valid():
+                                condition_flag = False
+                    if condition_flag:
+                        func(request)
+                        break
+
+    def __process_middlewares(self, request):
+        for middleware in self.__middlewares:
+            request = middleware().process_request(request)
+        return request

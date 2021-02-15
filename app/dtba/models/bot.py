@@ -3,6 +3,7 @@ import importlib
 from ..lib.obj import BasicBotInterface
 from ..utils import get_bot_interfaces
 
+
 LOGIC_INTERFACE_CHOICES = [
 	(interface, interface) for interface in get_bot_interfaces()
 ]
@@ -22,3 +23,16 @@ class Bot(models.Model):
 		module = importlib.import_module(module_path)
 		interface = getattr(module, interface_name)
 		return interface(self.token)
+
+	def get_or_create_user(self, chat_id):
+		result = self.botuser_set.model.objects.get_or_create(
+			chat_id=str(chat_id),
+			defaults={
+				"bot": self
+			}
+		)
+		return result
+
+	def start_polling(self):
+		i = self.get_interface()
+		i.bot.polling(none_stop=True)
