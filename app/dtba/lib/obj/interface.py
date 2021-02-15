@@ -67,13 +67,13 @@ class BasicBotInterface:
                     condition_flag = True
                     for condition in func.__dict__["conditions"]:
                         try:
-                            init_condition = condition(request)
-                            if not init_condition.is_valid():
-                                condition_flag = False
+                            inited_condition = condition()
                         except TypeError:
-                            condition.request = request
-                            if not condition.is_valid():
-                                condition_flag = False
+                            inited_condition = condition
+                        condition = inited_condition
+                        condition.request = request
+                        if not condition.is_valid():
+                            condition_flag = False
                     if condition_flag:
                         func(request)
                         break
