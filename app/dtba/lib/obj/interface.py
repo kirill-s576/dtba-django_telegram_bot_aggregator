@@ -59,7 +59,7 @@ class BasicBotInterface:
 
     def __process_handlers(self, request):
         for handler in self.handlers:
-            inited_handler = handler(request)
+            inited_handler = handler["handler"](request)
             methods = inspect.getmembers(inited_handler, predicate=inspect.ismethod)
             for method in methods[1:]:
                 func = getattr(inited_handler, method[0])

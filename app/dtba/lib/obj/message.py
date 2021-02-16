@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 
 
 class ResponseMessage(ABC):
@@ -13,7 +13,6 @@ class ResponseMessage(ABC):
         pass
 
 
-
 class TextResponseMessage(ResponseMessage):
 
     def __init__(self, request, text):
@@ -24,24 +23,14 @@ class TextResponseMessage(ResponseMessage):
         return self.request.bot.send_message(chat_id=self.request.message.chat.id, text=self.text)
 
 
-class ReplyKeyboardResponseMessage(TextResponseMessage):
+class InlineMenuButton:
 
-    keyboard = ReplyKeyboardMarkup(one_time_keyboard=True)
+    def __init__(self, name: str, url: str):
+        self.name = name
+        self.url = url
 
-    def add_button(self, text):
-        self.keyboard.row(
-            KeyboardButton(text=text)
-        )
+
+class InlineMenuMessageResponse(ResponseMessage):
 
     def send(self):
-        keyboard = self.keyboard
-        if len(keyboard.keyboard) == 0:
-            keyboard = ReplyKeyboardRemove()
-        return self.request.bot.send_message(chat_id=self.request.message.chat.id,
-                                             text=self.text,
-                                             reply_markup=keyboard)
-
-    # def remove(self):
-    #     return self.request.bot.edit_message_text(chat_id=self.request.message.chat.id,
-    #                                          text="Mennu!",
-    #                                          message_id=76, reply_markup=ReplyKeyboardRemove())
+        pass
